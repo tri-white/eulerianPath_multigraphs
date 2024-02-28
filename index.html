@@ -34,6 +34,7 @@
     <div id="tableContainer"></div>
 </div>
 <div id="inOutTableOutput"></div>
+<div id="startEndNodes"></div>
 <button onclick="findEulerLoop()">Find Euler Loop</button>
 <div id="eulerianOutput">
     <h3>Eulerian Path/Cycle</h3>
@@ -104,46 +105,46 @@
         
         document.getElementById('inOutTableOutput').innerHTML = inOutTableHTML;
         
-        let startVertex = 0;
-        let endVertex = 0;
-        let startMinusEnd = 0;
-        let endMinusStart = 0;
-        let numOddDegrees = 0;
+        let startNode = 0;
+        let endNode = 0;
+        let numOddDegreesOut = 0;
+        let numOddDegreesIn = 0;
         
-        // Check for the conditions
+        // Check for startNode and endNode based on degrees
         for (let i = 1; i <= numVertices; i++) {
             let diff = outDegrees[i] - inDegrees[i];
             if (diff === 1) {
-                endVertex = i;
-                numOddDegrees++;
+                startNode = i;
+                numOddDegreesOut++;
             } else if (diff === -1) {
-                startVertex = i;
-                numOddDegrees++;
+                endNode = i;
+                numOddDegreesIn++;
             } else if (Math.abs(diff) > 1) {
                 document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
                 return;
             }
-            startMinusEnd += diff;
-            endMinusStart -= diff;
         }
         
         // Check if the conditions are met
-        if (numOddDegrees > 2 || (startMinusEnd !== 1 && endMinusStart !== 1 && startMinusEnd !== 0)) {
+        if (numOddDegreesIn >1  ||  numOddDegreesOut > 1 || (startNode !== 0 && endNode !== 0 && startNode === endNode) || (startNode === 0 && endNode === 0 && numOddDegrees !== 0)) {
             document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
             return;
         }
         
         // If conditions are met, find the Eulerian path
-        let eulerianPath = findEulerianPath(startVertex === 0 ? 1 : startVertex, edges, numVertices);
+        let eulerianPath = findEulerianPath(startNode, endNode, edges, numVertices);
         
         if (eulerianPath) {
             document.getElementById('eulerianPath').textContent = "Eulerian Path/Cycle: " + eulerianPath.join('->');
         } else {
             document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
         }
+
+        // Display startNode and endNode
+        document.getElementById('startEndNodes').innerHTML = "Start Node: " + startNode + ", End Node: " + endNode;
     }
     
-    function findEulerianPath(startVertex, edges, numVertices) {
+    function findEulerianPath(startVertex, endVertex, edges, numVertices) {
         let path = [];
         let stack = [startVertex];
         
@@ -157,6 +158,7 @@
                 // Add the current vertex to the path only if it hasn't been visited before
                 if (!path.includes(currentVertex)) {
                     path.unshift(stack.pop());
+                    if (currentVertex === endVertex) break; // Stop when reaching the endNode
                 } else {
                     stack.pop();
                 }
