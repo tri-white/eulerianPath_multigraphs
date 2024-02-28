@@ -33,9 +33,10 @@
     <h3>Adjacency Matrix</h3>
     <div id="tableContainer"></div>
 </div>
+
+<button onclick="findEulerLoop()">Find Euler Loop</button>
 <div id="inOutTableOutput"></div>
 <div id="startEndNodes"></div>
-<button onclick="findEulerLoop()">Find Euler Loop</button>
 <div id="eulerianOutput">
     <h3>Eulerian Path/Cycle</h3>
     <p id="eulerianPath"></p>
@@ -66,119 +67,117 @@
         
         document.getElementById('tableContainer').innerHTML = matrixHTML;
     }
+    let outDegrees = new Array(1).fill(0);
+    let edges = {};
+function findEulerLoop() {
+    let numVertices = parseInt(document.getElementById('numVertices').value);
+    edges = {};
+    let edgesCount = 0;
+    let inDegrees = new Array(numVertices + 1).fill(0);
+    outDegrees = new Array(numVertices + 1).fill(0);
     
-    function findEulerLoop() {
-        let numVertices = parseInt(document.getElementById('numVertices').value);
-        let edges = {};
-        let inDegrees = new Array(numVertices + 1).fill(0);
-        let outDegrees = new Array(numVertices + 1).fill(0);
-        
-        // Retrieve distances from the table and calculate degrees
-        for (let i = 1; i <= numVertices; i++) {
-            edges[i] = [];
-            for (let j = 1; j <= numVertices; j++) {
-                let distance = document.getElementById('v' + i + '_' + j).value.trim();
-                if (distance) {
-                    let distances = distance.split(',').map(Number);
-                    distances.forEach(d => {
-                        if (d > 0) {
-                            edges[i].push(j);
-                            outDegrees[i]++;
-                            inDegrees[j]++;
-                        }
-                    });
-                }
+    // Retrieve distances from the table and calculate degrees
+    for (let i = 1; i <= numVertices; i++) {
+        edges[i] = [];
+        for (let j = 1; j <= numVertices; j++) {
+            let distance = document.getElementById('v' + i + '_' + j).value.trim();
+            if (distance) {
+                let distances = distance.split(',').map(Number);
+                distances.forEach(d => {
+                    if (d > 0) {
+                        edges[i].push(j);
+                        edgesCount++;
+                        outDegrees[i]++;
+                        inDegrees[j]++;
+                    }
+                });
             }
         }
-        
-        // Generate table for indegree and outdegree counts
-        let inOutTableHTML = '<table>';
-        inOutTableHTML += '<tr><th>Node</th><th>In</th><th>Out</th></tr>';
-        for (let i = 1; i <= numVertices; i++) {
-            inOutTableHTML += '<tr>';
-            inOutTableHTML += '<td>' + i + '</td>';
-            inOutTableHTML += '<td>' + inDegrees[i] + '</td>';
-            inOutTableHTML += '<td>' + outDegrees[i] + '</td>';
-            inOutTableHTML += '</tr>';
-        }
-        inOutTableHTML += '</table>';
-        
-        document.getElementById('inOutTableOutput').innerHTML = inOutTableHTML;
-        
-        let startNode = 0;
-        let endNode = 0;
-        let numOddDegreesOut = 0;
-        let numOddDegreesIn = 0;
-        
-        // Check for startNode and endNode based on degrees
-        for (let i = 1; i <= numVertices; i++) {
-            let diff = outDegrees[i] - inDegrees[i];
-            if (diff === 1) {
-                startNode = i;
-                numOddDegreesOut++;
-            } else if (diff === -1) {
-                endNode = i;
-                numOddDegreesIn++;
-            } else if (Math.abs(diff) > 1) {
-                document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
-                return;
-            }
-        }
-        
-        // Check if the conditions are met
-        if (numOddDegreesIn >1  ||  numOddDegreesOut > 1 || (startNode !== 0 && endNode !== 0 && startNode === endNode) || (startNode === 0 && endNode === 0 && numOddDegrees !== 0)) {
+    }
+    
+    // Generate table for indegree and outdegree counts
+    let inOutTableHTML = '<table>';
+    inOutTableHTML += '<tr><th>Node</th><th>In</th><th>Out</th></tr>';
+    for (let i = 1; i <= numVertices; i++) {
+        inOutTableHTML += '<tr>';
+        inOutTableHTML += '<td>' + i + '</td>';
+        inOutTableHTML += '<td>' + inDegrees[i] + '</td>';
+        inOutTableHTML += '<td>' + outDegrees[i] + '</td>';
+        inOutTableHTML += '</tr>';
+    }
+    inOutTableHTML += '</table>';
+    
+    document.getElementById('inOutTableOutput').innerHTML = inOutTableHTML;
+    
+    let startNode = 0;
+    let numOddDegrees = 0;
+    
+    // Check for startNode and endNode based on degrees
+    for (let i = 1; i <= numVertices; i++) {
+        let diff = outDegrees[i] - inDegrees[i];
+        if (diff === 1) {
+            startNode = i;
+            numOddDegrees++;
+        } else if (diff === -1) {
+            numOddDegrees++;
+        } else if (Math.abs(diff) > 1) {
             document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
             return;
         }
-        
-        // If conditions are met, find the Eulerian path
-        let eulerianPath = findEulerianPath(startNode, endNode, edges, numVertices);
-        
-        if (eulerianPath) {
-            document.getElementById('eulerianPath').textContent = "Eulerian Path/Cycle: " + eulerianPath.join('->');
-        } else {
-            document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
+    }
+    if(startNode===0){
+        for (let i = 1; i <= numVertices; i++) {
+            if(outDegrees[i]>0) startNode = i;
         }
-
-        // Display startNode and endNode
-        document.getElementById('startEndNodes').innerHTML = "Start Node: " + startNode + ", End Node: " + endNode;
     }
     
-    function findEulerianPath(startVertex, endVertex, edges, numVertices) {
-        let path = [];
-        let stack = [startVertex];
-        
-        while (stack.length > 0) {
-            let currentVertex = stack[stack.length - 1];
-            
-            if (edges[currentVertex] && edges[currentVertex].length > 0) {
-                let nextVertex = edges[currentVertex].shift();
-                stack.push(nextVertex);
-            } else {
-                // Add the current vertex to the path only if it hasn't been visited before
-                if (!path.includes(currentVertex)) {
-                    path.unshift(stack.pop());
-                    if (currentVertex === endVertex) break; // Stop when reaching the endNode
-                } else {
-                    stack.pop();
-                }
-            }
-        }
-        
-        // Check if the path forms a cycle and includes all edges
-        let visited = {};
-        path.forEach(vertex => {
-            visited[vertex] = true;
-        });
-        
-        for (let vertex in edges) {
-            if (!visited[vertex] || edges[vertex].length > 0) {
-                return null;
-            }
-        }
-        
-        return path.length > 0 && path.length <= numVertices ? path : null;
+    // Check if the conditions are met
+    if (numOddDegrees != 2 && numOddDegrees!=0) {
+        document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
+        return;
     }
+    
+    // If conditions are met, find the Eulerian path
+    let eulerianPath = findEulerianPath(startNode, numVertices, outDegrees, edgesCount);
+    
+    if (eulerianPath) {
+        eulerianPath = eulerianPath.reverse();
+        document.getElementById('eulerianPath').textContent = "Eulerian Path/Cycle: " + eulerianPath.join('->');
+    } else {
+        document.getElementById('eulerianPath').textContent = "Couldn't build eulerian path/loop";
+    }
+
+    // Display startNode and endNode
+    document.getElementById('startEndNodes').innerHTML = "Start Node: " + startNode;
+}
+
+let path = [];
+
+function findEulerianPath(startVertex, numVertices, outDegrees, edgesCount) {
+    path = [];
+    dfs(startVertex, outDegrees);
+
+    if (path.length == edgesCount+1) return path;
+    return [];
+}
+
+function dfs(at, outDegrees) {
+    // while current node still has outgoing edges
+    while(outDegrees[at] != 0 ){
+
+        // get next edge from currentNode, decrease outdegree of current node by 1
+        outDegrees[at] = outDegrees[at]-1;
+
+        //set next edge(vertex) that current node is connected to
+        let next_edge = edges[at][outDegrees[at]];
+
+        dfs(next_edge, outDegrees);
+    }
+
+    // add current node to the solution
+    path.push(at);
+}
+
 </script>
 </body>
 </html>
