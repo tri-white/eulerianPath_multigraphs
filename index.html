@@ -25,112 +25,112 @@
 <body>
 <h2>Graph Adjacency Matrix Generator</h2>
 <div>
-    <label for="input">Enter edges and distances (format: vertex1 vertex2 distance):</label><br>
-    <textarea id="input" rows="5" cols="50"></textarea><br>
-    <button onclick="generateMatrix()">Generate Matrix</button>
+    <label for="numVertices">Enter the number of vertices:</label><br>
+    <input type="number" id="numVertices" min="1"><br>
+    <button onclick="generateTable()">Generate Table</button>
 </div>
 <div id="matrixOutput">
     <h3>Adjacency Matrix</h3>
-    <table id="matrix"></table>
+    <div id="tableContainer"></div>
 </div>
+<br><br><br>
+<div id="inOutTableOutput"></div>
+<button onclick="findEulerLoop()">Find Euler Loop</button>
 <div id="eulerianOutput">
     <h3>Eulerian Path/Cycle</h3>
     <p id="eulerianPath"></p>
 </div>
 
 <script>
-    function generateMatrix() {
-        let inputText = document.getElementById('input').value.trim();
-        let lines = inputText.split('\n');
-        let maxVertex = 0;
+    function generateTable() {
+        let numVertices = parseInt(document.getElementById('numVertices').value);
+        let matrixHTML = '<table id="matrix">';
         
-        // Find the maximum vertex number
-        lines.forEach(line => {
-            let [v1, v2] = line.split(' ').map(Number);
-            maxVertex = Math.max(maxVertex, v1, v2);
-        });
-    
-        // Initialize adjacency matrix with zeros
-        let matrix = [];
-        for (let i = 0; i <= maxVertex; i++) {
-            matrix.push(new Array(maxVertex+1).fill(''));
+        // Generate table rows and columns with labels
+        matrixHTML += '<tr><th></th>';
+        for (let i = 1; i <= numVertices; i++) {
+            matrixHTML += '<th>' + i + '</th>';
         }
-    
-        // Fill adjacency matrix for directed graph
-        lines.forEach(line => {
-            let [v1, v2, distance] = line.split(' ').map(Number);
-            if (matrix[v1][v2] !== '') {
-                // If there's already a distance, append the new one
-                matrix[v1][v2] += ',' + distance;
-            } else {
-                matrix[v1][v2] = distance.toString();
+        matrixHTML += '</tr>';
+        
+        for (let i = 1; i <= numVertices; i++) {
+            matrixHTML += '<tr>';
+            matrixHTML += '<td>' + i + '</td>';
+            for (let j = 1; j <= numVertices; j++) {
+                matrixHTML += '<td><input type="number" id="v' + i + '_' + j + '"></td>';
             }
-        });
-    
-        // Clear previous matrix
-        let matrixTable = document.getElementById('matrix');
-        while (matrixTable.firstChild) {
-            matrixTable.removeChild(matrixTable.firstChild);
-        }
-    
-        // Add headers for columns
-        let headerRow = matrixTable.insertRow();
-        for (let j = 0; j <= maxVertex; j++) {
-            let headerCell = headerRow.insertCell();
-            if (j !== 0) {
-                headerCell.textContent = 'V' + j;
-            }
-        }
-    
-        // Fill matrix and add row headers
-        for (let i = 1; i <= maxVertex; i++) {
-            let row = matrixTable.insertRow();
-            let rowHeader = row.insertCell();
-            rowHeader.textContent = 'V' + i;
-            for (let j = 1; j <= maxVertex; j++) {
-                let cell = row.insertCell();
-                cell.textContent = matrix[i][j];
-            }
+            matrixHTML += '</tr>';
         }
         
-        // Check for Eulerian path or cycle
-        let inDegrees = new Array(maxVertex + 1).fill(0);
-        let outDegrees = new Array(maxVertex + 1).fill(0);
+        matrixHTML += '</table>';
+        
+        document.getElementById('tableContainer').innerHTML = matrixHTML;
+    }
+    
+    function findEulerLoop() {
+        let numVertices = parseInt(document.getElementById('numVertices').value);
         let edges = {};
+        let inDegrees = new Array(numVertices + 1).fill(0);
+        let outDegrees = new Array(numVertices + 1).fill(0);
         
-        lines.forEach(line => {
-            let [v1, v2, distance] = line.split(' ').map(Number);
-            outDegrees[v1]++;
-            inDegrees[v2]++;
-            if (!edges[v1]) edges[v1] = [];
-            edges[v1].push(v2);
-        });
-        
-        let oddVertices = [];
-        for (let i = 1; i <= maxVertex; i++) {
-            if ((inDegrees[i] - outDegrees[i]) !== 0) {
-                if (Math.abs(inDegrees[i] - outDegrees[i]) === 1) {
-                    oddVertices.push(i);
-                } else {
-                    document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
-                    return;
+        // Retrieve distances from the table and calculate degrees
+        for (let i = 1; i <= numVertices; i++) {
+            edges[i] = [];
+            for (let j = 1; j <= numVertices; j++) {
+                let distance = parseInt(document.getElementById('v' + i + '_' + j).value);
+                if (distance > 0) {
+                    edges[i].push(j);
+                    outDegrees[i]++;
+                    inDegrees[j]++;
                 }
             }
         }
         
-        let startVertex = 1;
-        if (oddVertices.length === 0) {
-            // If no odd vertices, start from any vertex
-            startVertex = 1;
-        } else if (oddVertices.length === 2) {
-            // If two odd vertices, start from one of them
-            startVertex = oddVertices[0];
-        } else {
+        // Generate table for indegree and outdegree counts
+        let inOutTableHTML = '<table>';
+        inOutTableHTML += '<tr><th>Node</th><th>In</th><th>Out</th></tr>';
+        for (let i = 1; i <= numVertices; i++) {
+            inOutTableHTML += '<tr>';
+            inOutTableHTML += '<td>' + i + '</td>';
+            inOutTableHTML += '<td>' + inDegrees[i] + '</td>';
+            inOutTableHTML += '<td>' + outDegrees[i] + '</td>';
+            inOutTableHTML += '</tr>';
+        }
+        inOutTableHTML += '</table>';
+        
+        document.getElementById('inOutTableOutput').innerHTML = inOutTableHTML;
+        
+        let startVertex = 0;
+        let endVertex = 0;
+        let startMinusEnd = 0;
+        let endMinusStart = 0;
+        let numOddDegrees = 0;
+        
+        // Check for the conditions
+        for (let i = 1; i <= numVertices; i++) {
+            let diff = outDegrees[i] - inDegrees[i];
+            if (diff === 1) {
+                endVertex = i;
+                numOddDegrees++;
+            } else if (diff === -1) {
+                startVertex = i;
+                numOddDegrees++;
+            } else if (Math.abs(diff) > 1) {
+                document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
+                return;
+            }
+            startMinusEnd += diff;
+            endMinusStart -= diff;
+        }
+        
+        // Check if the conditions are met
+        if (numOddDegrees > 2 || (startMinusEnd !== 1 && endMinusStart !== 1 && startMinusEnd !== 0)) {
             document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
             return;
         }
         
-        let eulerianPath = findEulerianPath(startVertex, edges);
+        // If conditions are met, find the Eulerian path
+        let eulerianPath = findEulerianPath(startVertex === 0 ? 1 : startVertex, edges, numVertices);
         
         if (eulerianPath) {
             document.getElementById('eulerianPath').textContent = "Eulerian Path/Cycle: " + eulerianPath.join('->');
@@ -139,21 +139,39 @@
         }
     }
     
-    function findEulerianPath(vertex, edges) {
+    function findEulerianPath(startVertex, edges, numVertices) {
         let path = [];
-        let stack = [vertex];
+        let stack = [startVertex];
         
         while (stack.length > 0) {
             let currentVertex = stack[stack.length - 1];
             
             if (edges[currentVertex] && edges[currentVertex].length > 0) {
-                stack.push(edges[currentVertex].shift());
+                let nextVertex = edges[currentVertex].shift();
+                stack.push(nextVertex);
             } else {
-                path.unshift(stack.pop());
+                // Add the current vertex to the path only if it hasn't been visited before
+                if (!path.includes(currentVertex)) {
+                    path.unshift(stack.pop());
+                } else {
+                    stack.pop();
+                }
             }
         }
         
-        return path.length > 0 ? path : null;
+        // Check if the path forms a cycle and includes all edges
+        let visited = {};
+        path.forEach(vertex => {
+            visited[vertex] = true;
+        });
+        
+        for (let vertex in edges) {
+            if (!visited[vertex] || edges[vertex].length > 0) {
+                return null;
+            }
+        }
+        
+        return path.length > 0 && path.length <= numVertices ? path : null;
     }
 </script>
 </body>
