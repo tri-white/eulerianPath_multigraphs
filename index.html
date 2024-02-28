@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Graph Adjacency Matrix Generator</title>
+<title>Генератор матриці суміжності графа</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -14,7 +14,7 @@
     }
     th, td {
         padding: 8px;
-        text-align: center; /* Align text to center */
+        text-align: center; /* Вирівнювання тексту по центру */
         border: 1px solid #dddddd;
     }
     th {
@@ -25,22 +25,22 @@
 
 </head>
 <body>
-<h2>Graph Adjacency Matrix Generator</h2>
+<h2>Генератор матриці суміжності графа</h2>
 <div>
-    <label for="numVertices">Enter the number of vertices:</label><br>
+    <label for="numVertices">Введіть кількість вершин:</label><br>
     <input type="number" id="numVertices" min="1"><br>
-    <button onclick="generateTable()">Generate Table</button>
+    <button onclick="generateTable()">Згенерувати таблицю</button>
 </div>
 <div id="matrixOutput">
-    <h3>Adjacency Matrix</h3>
+    <h3>Матриця суміжності</h3>
     <div id="tableContainer"></div>
 </div>
 
-<button onclick="findEulerLoop()">Find Euler Loop</button>
+<button onclick="findEulerLoop()">Знайти Ейлерів цикл</button>
 <div id="inOutTableOutput"></div>
 <div id="startEndNodes"></div>
 <div id="eulerianOutput">
-    <h3>Eulerian Path/Cycle</h3>
+    <h3>Ейлерів шлях/цикл</h3>
     <p id="eulerianPath"></p>
     <div id="graph"></div>
 
@@ -52,7 +52,7 @@
         let numVertices = parseInt(document.getElementById('numVertices').value);
         let matrixHTML = '<table id="matrix">';
         
-        // Generate table rows and columns with labels
+        // Згенерувати рядки та стовпці з мітками для таблиці
         matrixHTML += '<tr><th></th>';
         for (let i = 1; i <= numVertices; i++) {
             matrixHTML += '<th>' + i + '</th>';
@@ -81,7 +81,7 @@ function findEulerLoop() {
     let inDegrees = new Array(numVertices + 1).fill(0);
     outDegrees = new Array(numVertices + 1).fill(0);
     
-    // Retrieve distances from the table and calculate degrees
+    // Отримати відстані з таблиці та обчислити ступені
     for (let i = 1; i <= numVertices; i++) {
         edges[i] = [];
         for (let j = 1; j <= numVertices; j++) {
@@ -100,9 +100,9 @@ function findEulerLoop() {
         }
     }
     
-    // Generate table for indegree and outdegree counts
+    // Згенерувати таблицю для підрахунку вхідних та вихідних ступенів
     let inOutTableHTML = '<table>';
-    inOutTableHTML += '<tr><th>Node</th><th>In</th><th>Out</th></tr>';
+    inOutTableHTML += '<tr><th>Вузол</th><th>Вхід</th><th>Вихід</th></tr>';
     for (let i = 1; i <= numVertices; i++) {
         inOutTableHTML += '<tr>';
         inOutTableHTML += '<td>' + i + '</td>';
@@ -117,7 +117,7 @@ function findEulerLoop() {
     let startNode = 0;
     let numOddDegrees = 0;
     
-    // Check for startNode and endNode based on degrees
+    // Перевірити вузли початку та кінця за ступенями
     for (let i = 1; i <= numVertices; i++) {
         let diff = outDegrees[i] - inDegrees[i];
         if (diff === 1) {
@@ -126,7 +126,7 @@ function findEulerLoop() {
         } else if (diff === -1) {
             numOddDegrees++;
         } else if (Math.abs(diff) > 1) {
-            document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
+            document.getElementById('eulerianPath').textContent = "Граф не має Ейлерівого шляху або циклу.";
             return;
         }
     }
@@ -136,27 +136,27 @@ function findEulerLoop() {
         }
     }
     
-    // Check if the conditions are met
+    // Перевірити умови
     if (numOddDegrees != 2 && numOddDegrees!=0) {
-        document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
+        document.getElementById('eulerianPath').textContent = "Граф не має Ейлерівого шляху або циклу.";
         return;
     }
     
-    // If conditions are met, find the Eulerian path
+    // Якщо умови виконані, знайти Ейлерів шлях
     let eulerianPath = findEulerianPath(startNode, numVertices, outDegrees, edgesCount);
     
     if (eulerianPath) {
         eulerianPath = eulerianPath.reverse();
-        document.getElementById('eulerianPath').textContent = "Eulerian Path/Cycle: " + eulerianPath.join('->');
+        document.getElementById('eulerianPath').textContent = "Ейлерів шлях/цикл: " + eulerianPath.join('->');
 
-        // Draw graph
+        // Намалювати граф
         drawGraph(eulerianPath);
     } else {
-        document.getElementById('eulerianPath').textContent = "Couldn't build eulerian path/loop";
+        document.getElementById('eulerianPath').textContent = "Не вдалося побудувати Ейлерів шлях/цикл";
     }
 
-    // Display startNode and endNode
-    document.getElementById('startEndNodes').innerHTML = "Start Node: " + startNode;
+    // Показати вузли початку та кінця
+    document.getElementById('startEndNodes').innerHTML = "Початковий вузол: " + startNode;
 }
 
 let path = [];
@@ -170,24 +170,24 @@ function findEulerianPath(startVertex, numVertices, outDegrees, edgesCount) {
 }
 
 function dfs(at, outDegrees) {
-    // while current node still has outgoing edges
+    // поки поточний вузол має вихідні ребра
     while(outDegrees[at] != 0 ){
 
-        // get next edge from currentNode, decrease outdegree of current node by 1
+        // отримати наступне ребро з поточного вузла, зменшити вихідну ступінь поточного вузла на 1
         outDegrees[at] = outDegrees[at]-1;
 
-        //set next edge(vertex) that current node is connected to
+        // встановити наступне ребро (вузол), до якого підключений поточний вузол
         let next_edge = edges[at][outDegrees[at]];
 
         dfs(next_edge, outDegrees);
     }
 
-    // add current node to the solution
+    // додати поточний вузол до розв'язку
     path.push(at);
 }
 
 function drawGraph(eulerianPath) {
-    // Create a new network instance
+    // Створити новий екземпляр мережі
     var container = document.getElementById("graph");
     var data = {
         nodes: [],
@@ -212,8 +212,8 @@ function drawGraph(eulerianPath) {
     };
     var network = new vis.Network(container, data, options);
 
-    // Populate nodes and edges based on the Eulerian path
-    var addedNodes = {}; // Track added nodes to prevent duplicates
+    // Заповнити вузли та ребра на основі Ейлерівого шляху
+    var addedNodes = {}; // Відстежити додані вузли, щоб уникнути дублікатів
     var nodes = new vis.DataSet();
     var edges = new vis.DataSet();
     for (var i = 0; i < eulerianPath.length - 1; i++) {
