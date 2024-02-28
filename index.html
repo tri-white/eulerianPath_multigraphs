@@ -1,19 +1,3 @@
-<!--
-    1.	Задано матрицю суміжності
-     орієнтованого мультиграфа. 
-     Визначити, чи має він ейлерів цикл,
-      а якщо ні , то ейлерів шлях. 
-      Побудувати ейлерів цикл або шлях,
-       якщо вони існують. Побудувати.
-
-       1 1 1
-2 1 2
-1 3 2
-3 2 3
-3 2 6
-1 3 2
-1 3 7
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -48,6 +32,10 @@
 <div id="matrixOutput">
     <h3>Adjacency Matrix</h3>
     <table id="matrix"></table>
+</div>
+<div id="eulerianOutput">
+    <h3>Eulerian Path/Cycle</h3>
+    <p id="eulerianPath"></p>
 </div>
 
 <script>
@@ -104,8 +92,69 @@
                 cell.textContent = matrix[i][j];
             }
         }
+        
+        // Check for Eulerian path or cycle
+        let inDegrees = new Array(maxVertex + 1).fill(0);
+        let outDegrees = new Array(maxVertex + 1).fill(0);
+        let edges = {};
+        
+        lines.forEach(line => {
+            let [v1, v2, distance] = line.split(' ').map(Number);
+            outDegrees[v1]++;
+            inDegrees[v2]++;
+            if (!edges[v1]) edges[v1] = [];
+            edges[v1].push(v2);
+        });
+        
+        let oddVertices = [];
+        for (let i = 1; i <= maxVertex; i++) {
+            if ((inDegrees[i] - outDegrees[i]) !== 0) {
+                if (Math.abs(inDegrees[i] - outDegrees[i]) === 1) {
+                    oddVertices.push(i);
+                } else {
+                    document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
+                    return;
+                }
+            }
+        }
+        
+        let startVertex = 1;
+        if (oddVertices.length === 0) {
+            // If no odd vertices, start from any vertex
+            startVertex = 1;
+        } else if (oddVertices.length === 2) {
+            // If two odd vertices, start from one of them
+            startVertex = oddVertices[0];
+        } else {
+            document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
+            return;
+        }
+        
+        let eulerianPath = findEulerianPath(startVertex, edges);
+        
+        if (eulerianPath) {
+            document.getElementById('eulerianPath').textContent = "Eulerian Path/Cycle: " + eulerianPath.join('->');
+        } else {
+            document.getElementById('eulerianPath').textContent = "Graph doesn't have an Eulerian path or cycle.";
+        }
     }
-    </script>
     
+    function findEulerianPath(vertex, edges) {
+        let path = [];
+        let stack = [vertex];
+        
+        while (stack.length > 0) {
+            let currentVertex = stack[stack.length - 1];
+            
+            if (edges[currentVertex] && edges[currentVertex].length > 0) {
+                stack.push(edges[currentVertex].shift());
+            } else {
+                path.unshift(stack.pop());
+            }
+        }
+        
+        return path.length > 0 ? path : null;
+    }
+</script>
 </body>
 </html>
