@@ -21,6 +21,8 @@
         background-color: #f2f2f2;
     }
 </style>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+
 </head>
 <body>
 <h2>Graph Adjacency Matrix Generator</h2>
@@ -40,7 +42,10 @@
 <div id="eulerianOutput">
     <h3>Eulerian Path/Cycle</h3>
     <p id="eulerianPath"></p>
+    <div id="graph"></div>
+
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
 
 <script>
     function generateTable() {
@@ -143,6 +148,9 @@ function findEulerLoop() {
     if (eulerianPath) {
         eulerianPath = eulerianPath.reverse();
         document.getElementById('eulerianPath').textContent = "Eulerian Path/Cycle: " + eulerianPath.join('->');
+
+        // Draw graph
+        drawGraph(eulerianPath);
     } else {
         document.getElementById('eulerianPath').textContent = "Couldn't build eulerian path/loop";
     }
@@ -178,6 +186,55 @@ function dfs(at, outDegrees) {
     path.push(at);
 }
 
+function drawGraph(eulerianPath) {
+    // Create a new network instance
+    var container = document.getElementById("graph");
+    var data = {
+        nodes: [],
+        edges: []
+    };
+    var options = {
+        nodes: {
+            borderWidth: 2,
+            size: 30,
+            color: {
+                border: '#222222',
+                background: '#666666'
+            },
+            font: {
+                color: '#eeeeee'
+            }
+        },
+        edges: {
+            width: 2,
+            color: '#aaaaaa'
+        }
+    };
+    var network = new vis.Network(container, data, options);
+
+    // Populate nodes and edges based on the Eulerian path
+    var addedNodes = {}; // Track added nodes to prevent duplicates
+    var nodes = new vis.DataSet();
+    var edges = new vis.DataSet();
+    for (var i = 0; i < eulerianPath.length - 1; i++) {
+        var from = eulerianPath[i];
+        var to = eulerianPath[i + 1];
+        if (!addedNodes[from]) {
+            nodes.add({ id: from, label: String(from) });
+            addedNodes[from] = true;
+        }
+        if (!addedNodes[to]) {
+            nodes.add({ id: to, label: String(to) });
+            addedNodes[to] = true;
+        }
+        edges.add({ from: from, to: to });
+    }
+    data.nodes = nodes;
+    data.edges = edges;
+    network.setData(data);
+}
+
 </script>
+
 </body>
 </html>
