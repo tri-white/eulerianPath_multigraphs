@@ -20,6 +20,9 @@
     th {
         background-color: #f2f2f2;
     }
+    #graph {
+        height: 100vh; /* Set height to 100% of viewport height */
+    }
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
 
@@ -187,7 +190,7 @@ function dfs(at, outDegrees) {
 }
 
 function drawGraph(eulerianPath) {
-    // Створити новий екземпляр мережі
+    // Create a new network instance
     var container = document.getElementById("graph");
     var data = {
         nodes: [],
@@ -207,13 +210,16 @@ function drawGraph(eulerianPath) {
         },
         edges: {
             width: 2,
-            color: '#aaaaaa'
+            color: '#aaaaaa',
+            arrows: {
+                to: { enabled: true, scaleFactor: 0.5 } // Specify directionality
+            }
         }
     };
     var network = new vis.Network(container, data, options);
 
-    // Заповнити вузли та ребра на основі Ейлерівого шляху
-    var addedNodes = {}; // Відстежити додані вузли, щоб уникнути дублікатів
+    // Fill nodes and edges based on the Eulerian path
+    var addedNodes = {}; // Track added nodes to avoid duplicates
     var nodes = new vis.DataSet();
     var edges = new vis.DataSet();
     for (var i = 0; i < eulerianPath.length - 1; i++) {
@@ -227,7 +233,7 @@ function drawGraph(eulerianPath) {
             nodes.add({ id: to, label: String(to) });
             addedNodes[to] = true;
         }
-        edges.add({ from: from, to: to });
+        edges.add({ from: from, to: to, arrows: 'to' }); // Specify directionality for each edge
     }
     data.nodes = nodes;
     data.edges = edges;
